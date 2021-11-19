@@ -9,22 +9,78 @@ app.use(cors());
 
 const users = [];
 
+function checkUser(username){
+ return users.some(element => element.username === username)
+}
+
 function checksExistsUserAccount(request, response, next) {
-  // Complete aqui
+  const {username} = request.headers
+  if(checkUser(username)){
+    const user = users.find( element => element.username === username)
+    request.user = user
+    next()
+  }else{
+    return response.status(404)
+  }
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
-  // Complete aqui
+  const {user} = request
+  
+
+  if(user.pro === true){
+    next()
+  }else if(user.todos.length === 10){
+    return response.status(403)
+  }else{
+    next()
+  }
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const {username} = request.headers
+  const {id} =request.params
+ 
+ 
+  const user = users.find(element => element.username === username)
+ 
+  if(!checkUser(username) ){
+    
+    return response.status(404).json({error:'User not exists'})
+    
+  }
+ 
+  if(!validate(id)){
+    
+    return response.status(400).json({error:' not uuid'})
+   
+  }
+ 
+  if(!user.todos.some( element => element.id === id)){
+    return response.status(404).json({error:'id not found'})
+  }
+  const todo = user.todos.find(element => element.id === id)
+
+  request.user = user
+  request.todo = todo
+  next()
+
 }
 
 function findUserById(request, response, next) {
-  // Complete aqui
-}
+  const {id} = request.params
+  const verifyUserId = users.some(element => element.id === id)
+  if(verifyUserId){
+    const user = users.find(element => element.id === id)
+    request.user = user
+    next()
+  }else{
+    return response.status(404)
+  }
 
+
+}
+// -------------------------------------------------------------------------------------------------
 app.post('/users', (request, response) => {
   const { name, username } = request.body;
 
